@@ -11,6 +11,7 @@ class Clicker extends StatefulWidget {
 
 class _ClickerState extends State<Clicker> {
   var _score = 0;
+  var _bestScore = 0;
   var _game = false;
 
   _plusOne() {
@@ -34,7 +35,11 @@ class _ClickerState extends State<Clicker> {
   }
 
   _stopGame(){ 
+    setState(() {
+    if (_score > _bestScore)
+    _bestScore = _score;
     _game = false;
+    });
   }
 
   @override
@@ -49,6 +54,7 @@ class _ClickerState extends State<Clicker> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text("Score : $_score"),
+            Text("Meilleur score : $_bestScore"),
             if (!_game)
               TextButton(
                   onPressed: _startGame, child: Text("Démarer la partie")),
