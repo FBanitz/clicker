@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class Clicker extends StatefulWidget {
@@ -17,10 +19,22 @@ class _ClickerState extends State<Clicker> {
     });
   }
 
-  _toggleGame() {
+  _startGame() {
     setState(() {
-      _game = !_game;
+      _game = true;
+      _score = 0;
+      _startTimer();
     });
+  }
+
+  _startTimer(){
+    setState(() {
+      Timer(Duration(seconds: 10), _stopGame);
+    });
+  }
+
+  _stopGame(){ 
+    _game = false;
   }
 
   @override
@@ -37,7 +51,7 @@ class _ClickerState extends State<Clicker> {
             Text("Score : $_score"),
             if (!_game)
               TextButton(
-                  onPressed: _toggleGame, child: Text("Démarer la partie")),
+                  onPressed: _startGame, child: Text("Démarer la partie")),
             Spacer(),
             if (_game)
               ElevatedButton.icon(
