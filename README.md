@@ -2,6 +2,8 @@
 
 Un projet de mini jeu en Dart / Flutter
 
+Inspiré par un tutoriel de Maxime Britto pour [Purple Giraffe](https://www.purplegiraffe.fr/)
+
 ## Démarer
 
 Pensez à faire un 
