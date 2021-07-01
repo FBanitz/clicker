@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'data/high_score.dart';
+import 'config/gameplay.dart';
+
 
 class Clicker extends StatefulWidget {
   const Clicker({Key? key}) : super(key: key);
@@ -11,10 +14,12 @@ class Clicker extends StatefulWidget {
 class _ClickerState extends State<Clicker> {
   var _formkey = GlobalKey<FormState>();
   var _score = 0;
-  var _highScore = 0;
-  String _name = "";
   String _game = "start";
+  var i=0;
+  var _scoreRow;
+  var _lastName;
 
+  final List<HighScore> _scoreList = [];
 
   _plusOne() {
     setState(() {
@@ -38,19 +43,13 @@ class _ClickerState extends State<Clicker> {
 
   _startTimer(){
     setState(() {
-      Timer(Duration(seconds: 10), _stopGame);
+      Timer(Duration(seconds: TIME), _stopGame);
     });
   }
 
   _stopGame(){ 
     setState(() {
     _game = "end";
-    });
-  }
-
-  _setName(value) {
-    setState(() {
-        _name = value;
     });
   }
 
@@ -63,9 +62,41 @@ class _ClickerState extends State<Clicker> {
   } 
  
   _setHigh(value) {
-    _setName(value);
+    if (_scoreRow != null && _scoreList.length >= BESTCOUNT)
+    _scoreList.removeAt(_scoreRow);
+    final highScore = new HighScore(value, _score);
+    _scoreList.add(highScore);
+    _scoreList.sort((a, b) => a.score.compareTo(b.score));
+    _lastName = value;
     _resetGame();
-    _highScore = _score;
+  }
+
+  _checkbest(value){
+    for (i=0; i<_scoreList.length; i++){
+      if (_scoreList[i].score < value)
+      return i;
+    }
+    return null;
+  }
+
+  Widget _resultRow(BuildContext context, int rowNumber) {
+    final result = _scoreList[rowNumber];
+    return Row(
+      children: [
+        Text(result.name),
+        Icon(Icons.star, color: Colors.yellow),
+        Text("${result.score} points")
+      ],
+    );
+  }
+
+  Widget results(BuildContext context) {
+    return Expanded(
+      child: ListView.builder(
+          itemCount: _scoreList.length,
+          itemBuilder: _resultRow
+        ),
+    );
   }
   
   @override
@@ -101,7 +132,6 @@ class _ClickerState extends State<Clicker> {
     return Column(
       children:[
         Text("Score : $_score"),
-        Text("Meilleur score ($_name) : $_highScore"),
       ]
     );
   }
@@ -110,38 +140,49 @@ class _ClickerState extends State<Clicker> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        score(),
-        TextButton(onPressed: _startGame, child: Text("Démarer la partie")),
+        if (_scoreList.length > 0)
+        Text("Les $BESTCOUNT Meilleurs joueurs : "),
+        results(context),
         Spacer(),
+        TextButton(onPressed: _startGame, child: Text("Démarer la partie")),
       ],
     );
   }
 
   Widget game(){
-      return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-            score(),
-            ElevatedButton.icon(
-              onPressed: _plusOne,
-              label: Text("Ajouter 1"),
-              icon: Icon(Icons.plus_one),
-            ),
-        ],
-      );
+    return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+          score(),
+          Spacer(),
+          ElevatedButton.icon(
+            onPressed: _plusOne,
+            label: Text("Ajouter 1"),
+            icon: Icon(Icons.plus_one),
+          ),
+      ],
+    );
   }
 
   Widget end(){
-    if (_score > _highScore)
-    return endHigh();
+    _scoreRow = _checkbest(_score);
+    if (_scoreList.length < BESTCOUNT)
+      return endHigh();
+    else if (_scoreRow != null)
+      return endHigh();
     else
-    return endLow();
+      return endLow();
+    // else
+    // return endLow();
   }
 
   Widget endHigh(){
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_scoreList.length > 0)
+        Text("Les $BESTCOUNT Meilleurs joueurs : "),
+        results(context),
         score(),
         Text("Bravo! nouveau record!!!"),
           Form(
@@ -151,7 +192,7 @@ class _ClickerState extends State<Clicker> {
                 Expanded(
                   child: TextFormField(
                     // controller: _controlerName,
-                    initialValue: _name,
+                    initialValue: _lastName,
                     decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -196,6 +237,7 @@ class _ClickerState extends State<Clicker> {
       children: [
         score(),
         Text("Vous n'avez pas réussi à battre le record :("),
+        Spacer(),
         ElevatedButton(onPressed: _resetGame, child: Text("retour")),
       ],
     );
